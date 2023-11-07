@@ -1,4 +1,4 @@
-from flask import Flask, render_template, resquet, redirect, session
+from flask import Flask, render_template, request, redirect, session
 import sqlite3 as sql
 import uuid     # biblioteca gera números aleatórios
 
@@ -19,17 +19,17 @@ def verifica_sessao():
 
 #Conexão com banco de dados
 def conecta_database():
-        conexao = sql.connectr("db_quitanda.db")
+        conexao = sql.connect("db_quitanda.db")
         conexao.row_factory = sql.Row
         return conexao 
 
 #Iniciar banco de dados
 def iniciar_db():
-     conexao = conecta_database()
-     with app.open_resource('esquema.sql', mode='r') as comandos:
-          conexao.curosor().executescript(comandos.read())
-          conexao.commit()
-          conexao.close() 
+    conexao = conecta_database()
+    with app.open_resource('esquema.sql', mode='r') as comandos:
+        conexao.cursor().executescript(comandos.read())
+    conexao.commit()
+    conexao.close() 
 
 #Rota da página inicial
 @app.route("/")
@@ -40,6 +40,24 @@ def index():
      conexao.close()
      title = "Home"
      return render_template("home.html", produtos=produtos, title=title)
+
+# ROTA DA PÁGINA DE LOGIN
+@app.route("/login")
+def login():
+     title="Login"
+     return render_template("login.html",title=title)
+
+# ROTA DA PÁGINA ACESSO
+@app.route("/acesso", methods=['post'])
+def acesso():
+    global usuario, senha
+    usuario_informado = request.form["usuario"]
+    senha_informada = request.form["senha"]
+    if usuario == usuario_informado and senha == senha_informada:
+        session["login"] = True
+        return redirect('/adm')
+    else:
+         return render_template("login.html", msg="Usuário/Senha estão incorretos!")
 
 #Final do código - Executando o servidor
 app.run(debug=True)
